@@ -52,11 +52,11 @@ int g_srate; //sample rate downconvert ratio
 int rb_head = -1;
 int16_t *rb_buf;
 /* Init Ring Buffer */
-void RB_init(void){
+void RB_init(void) {
 	rb_buf = (int16_t*)malloc(RB_SIZE * 2);
 }
 /* increment Ring Buffer Head */
-void RB_inc(void){
+void RB_inc(void) {
 	rb_head++;
 	rb_head = (rb_head) % RB_SIZE;
 }
@@ -67,12 +67,12 @@ void RB_inc(void){
 /* helper functions */
 /* Quantize sample at location l by checking whether it's over the threshold */
 /* Important - takes into account the sample rate downconversion ratio */
-inline bool Quantize(int16_t l){
+inline bool Quantize(int16_t l) {
 	return RB(l * g_srate) > g_threshold;
 }
 #define Q(l) Quantize(l)
 
-uint8_t inline SwapBits(uint8_t a){
+uint8_t inline SwapBits(uint8_t a) {
 	return (uint8_t)(((a * 0x0802LU & 0x22110LU) | (a * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
 }
 
@@ -103,7 +103,7 @@ uint32_t NRFCrc(const uint8_t* data, size_t data_len)
 }
 
 /* Calcualte custom CRC24 for BTLE */
-uint32_t BTLECrc(const uint8_t* data, uint8_t len, uint8_t* dst){
+uint32_t BTLECrc(const uint8_t* data, uint8_t len, uint8_t* dst) {
 
 	uint8_t v, t, d;
 	uint32_t crc = 0;
@@ -133,7 +133,7 @@ uint32_t BTLECrc(const uint8_t* data, uint8_t len, uint8_t* dst){
 }
 
 /* whiten (descramble) BTLE packet using channel value */
-void BTLEWhiten(uint8_t* data, uint8_t len, uint8_t chan){
+void BTLEWhiten(uint8_t* data, uint8_t len, uint8_t chan) {
 
 	uint8_t i;
 	uint8_t lfsr = SwapBits(chan) | 2;
@@ -152,7 +152,7 @@ void BTLEWhiten(uint8_t* data, uint8_t len, uint8_t chan){
 }
 
 /* Extract quantization threshold from preamble sequence */
-int32_t ExtractThreshold(void){
+int32_t ExtractThreshold(void) {
 	int32_t threshold = 0;
 	int c;
 	for (c = 0; c < 8 * g_srate; c++) {
@@ -162,7 +162,7 @@ int32_t ExtractThreshold(void){
 }
 
 /* Identify preamble sequence */
-bool DetectPreamble(void){
+bool DetectPreamble(void) {
 	int transitions = 0;
 	int c;
 
@@ -180,7 +180,7 @@ bool DetectPreamble(void){
 }
 
 /* Extract byte from ring buffer starting location l */
-uint8_t inline ExtractByte(int l){
+uint8_t inline ExtractByte(int l) {
 	uint8_t byte = 0;
 	int c;
 	for (c = 0; c < 8; c++) byte |= Q(l + c) << (7 - c);
@@ -188,7 +188,7 @@ uint8_t inline ExtractByte(int l){
 }
 
 /* Extract count bytes from ring buffer starting location l into buffer*/
-void inline ExtractBytes(int l, uint8_t* buffer, int count){
+void inline ExtractBytes(int l, uint8_t* buffer, int count) {
 	int t;
 	for (t = 0; t < count; t++) {
 		buffer[t] = ExtractByte(l + t * 8);
@@ -196,7 +196,7 @@ void inline ExtractBytes(int l, uint8_t* buffer, int count){
 }
 
 /* Prepare packed bit stream for CRC calculation */
-void PackPacket(uint64_t packet_addr_l, uint16_t pcf, uint8_t* packet_data, int packet_length, uint8_t* packet_packed){
+void PackPacket(uint64_t packet_addr_l, uint16_t pcf, uint8_t* packet_data, int packet_length, uint8_t* packet_packed) {
 	int c;
 	uint64_t packet_header = packet_addr_l;
 	packet_header <<= 9;
@@ -210,7 +210,7 @@ void PackPacket(uint64_t packet_addr_l, uint16_t pcf, uint8_t* packet_data, int 
 	}
 }
 
-bool DecodeBTLEPacket(int32_t sample, int srate){
+bool DecodeBTLEPacket(int32_t sample, int srate) {
 	int c;
 	struct timeval tv;
 	uint8_t packet_data[500];
@@ -267,7 +267,7 @@ bool DecodeBTLEPacket(int32_t sample, int srate){
 	} else return false;
 }
 
-bool DecodeNRFPacket(int32_t sample, int srate, int packet_length){
+bool DecodeNRFPacket(int32_t sample, int srate, int packet_length) {
 	int c, t;
 	struct timeval tv;
 	uint8_t tmp_buf[10];
@@ -321,7 +321,7 @@ bool DecodeNRFPacket(int32_t sample, int srate, int packet_length){
 }
 
 
-bool DecodePacket(int decode_type, int32_t sample, int srate, int packet_length){
+bool DecodePacket(int decode_type, int32_t sample, int srate, int packet_length) {
 	bool packet_detected = false;
 	g_srate = srate;
 	g_threshold = ExtractThreshold();
@@ -352,7 +352,7 @@ void usage(void)
 	exit(1);
 }
 
-int main (int argc, char**argv){
+int main (int argc, char**argv) {
 	int16_t cursamp;
 	int32_t samples = 0;
 	int skipSamples;
