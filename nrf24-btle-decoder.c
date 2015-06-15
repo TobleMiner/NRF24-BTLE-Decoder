@@ -40,12 +40,12 @@
 	#include <io.h>
 	#include <fcntl.h>
 #endif /* defined(WIN32) */
-#include <stdlib.h> // For exit function
+#include <stdlib.h> //For exit function
 #include <unistd.h> /* for getopt */
 
 /* Global variables */
-int32_t g_threshold; // Quantization threshold
-int g_srate; // sample rate downconvert ratio
+int32_t g_threshold; //Quantization threshold
+int g_srate; //sample rate downconvert ratio
 
 /* Ring Buffer */
 #define RB_SIZE 1000
@@ -233,10 +233,10 @@ bool DecodeBTLEPacket(int32_t sample, int srate){
 	/* whiten header only so we can extract pdu length */
 	BTLEWhiten(packet_header_arr, 2, 38);
 
-	if (packet_addr_l == 0x8E89BED6) {  // Advertisement packet
+	if (packet_addr_l == 0x8E89BED6) {  //Advertisement packet
 		packet_length = SwapBits(packet_header_arr[1]) & 0x3F;
 	} else {
-		packet_length = 0;            // TODO: data packets unsupported
+		packet_length = 0;            //TODO: data packets unsupported
 
 	}
 
@@ -244,10 +244,10 @@ bool DecodeBTLEPacket(int32_t sample, int srate){
 	ExtractBytes(5 * 8, packet_data, packet_length + 2 + 3);
 	BTLEWhiten(packet_data, packet_length + 2 + 3, 38);
 
-	if (packet_addr_l == 0x8E89BED6) {  // Advertisement packet
+	if (packet_addr_l == 0x8E89BED6) {  //Advertisement packet
 		crc[0] = crc[1] = crc[2] = 0x55;
 	} else {
-		crc[0] = crc[1] = crc[2] = 0;     // TODO: data packets unsupported
+		crc[0] = crc[1] = crc[2] = 0;     //TODO: data packets unsupported
 	}
 
 	/* calculate packet crc */
@@ -327,7 +327,7 @@ bool DecodePacket(int decode_type, int32_t sample, int srate, int packet_length)
 	g_threshold = ExtractThreshold();
 
 	if (DetectPreamble()) {
-		// btle
+		//btle
 		if (decode_type == 2) {
 			packet_detected |= DecodeBTLEPacket(sample, srate);
 		}
