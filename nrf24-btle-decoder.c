@@ -128,7 +128,8 @@ uint32_t BTLECrc(const uint8_t* data, uint8_t len, uint8_t* dst) {
 			}
 		}
 	}
-	for (v = 0; v < 3; v++) crc = (crc << 8) | dst[v];
+	for (v = 0; v < 3; v++)
+		crc = (crc << 8) | dst[v];
 	return crc;
 }
 
@@ -155,9 +156,8 @@ void BTLEWhiten(uint8_t* data, uint8_t len, uint8_t chan) {
 int32_t ExtractThreshold(void) {
 	int32_t threshold = 0;
 	int c;
-	for (c = 0; c < 8 * g_srate; c++) {
+	for (c = 0; c < 8 * g_srate; c++)
 		threshold += (int32_t)RB(c);
-	}
 	return (int32_t)threshold / (8 * g_srate);
 }
 
@@ -168,13 +168,11 @@ bool DetectPreamble(void) {
 
 	/* preamble sequence is based on the 9th symbol (either 0x55555555 or 0xAAAAAAAA) */
 	if (Q(9)) {
-		for (c = 0; c < 8; c++) {
+		for (c = 0; c < 8; c++)
 			transitions += Q(c) > Q(c + 1);
-		}
 	} else {
-		for (c = 0; c < 8; c++) {
+		for (c = 0; c < 8; c++)
 			transitions += Q(c) < Q(c + 1);
-		}
 	}
 	return transitions == 4 && abs(g_threshold) < 15500;
 }
@@ -183,7 +181,8 @@ bool DetectPreamble(void) {
 uint8_t inline ExtractByte(int l) {
 	uint8_t byte = 0;
 	int c;
-	for (c = 0; c < 8; c++) byte |= Q(l + c) << (7 - c);
+	for (c = 0; c < 8; c++)
+		byte |= Q(l + c) << (7 - c);
 	return byte;
 }
 
@@ -196,7 +195,8 @@ void inline ExtractBytes(int l, uint8_t* buffer, int count) {
 }
 
 /* Prepare packed bit stream for CRC calculation */
-void PackPacket(uint64_t packet_addr_l, uint16_t pcf, uint8_t* packet_data, int packet_length, uint8_t* packet_packed) {
+void PackPacket(uint64_t packet_addr_l, uint16_t pcf, uint8_t* packet_data,
+		int packet_length, uint8_t* packet_packed) {
 	int c;
 	uint64_t packet_header = packet_addr_l;
 	packet_header <<= 9;
@@ -225,7 +225,8 @@ bool DecodeBTLEPacket(int32_t sample, int srate) {
 
 	/* extract address */
 	packet_addr_l = 0;
-	for (c = 0; c < 4; c++) packet_addr_l |= ((uint64_t)SwapBits(ExtractByte((c + 1) * 8))) << (8 * c);
+	for (c = 0; c < 4; c++)
+		packet_addr_l |= ((uint64_t)SwapBits(ExtractByte((c + 1) * 8))) << (8 * c);
 
 	/* extract pdu header */
 	ExtractBytes(5 * 8, packet_header_arr, 2);
@@ -253,15 +254,19 @@ bool DecodeBTLEPacket(int32_t sample, int srate) {
 	/* calculate packet crc */
 	calced_crc = BTLECrc(packet_data, packet_length + 2, crc);
 	packet_crc = 0;
-	for (c = 0; c < 3; c++) packet_crc = (packet_crc << 8) | packet_data[packet_length + 2 + c];
+	for (c = 0; c < 3; c++)
+		packet_crc = (packet_crc << 8) | packet_data[packet_length + 2 + c];
 
 	/* BTLE packet found, dump information */
 	if (packet_crc == calced_crc) {
 		gettimeofday(&tv, NULL);
 		printf("%ld.%06ld ", (long)tv.tv_sec, tv.tv_usec);
-		printf("BTLE Packet start sample %" PRId32 ", Threshold:%" PRId32 ", Address: 0x%08" PRIX64 ", CRC:0x%06X ", sample, g_threshold, packet_addr_l, packet_crc);
+		printf("BTLE Packet start sample %" PRId32 ", Threshold:%" PRId32
+			", Address: 0x%08" PRIX64 ", CRC:0x%06X ", sample, g_threshold,
+			packet_addr_l, packet_crc);
 		printf("length:%d data:", packet_length);
-		for (c = 0; c < packet_length + 2; c++) printf("%02X ", SwapBits(packet_data[c]));
+		for (c = 0; c < packet_length + 2; c++)
+			printf("%02X ", SwapBits(packet_data[c]));
 		printf("\n");
 		return true;
 	} else return false;
@@ -283,7 +288,8 @@ bool DecodeNRFPacket(int32_t sample, int srate, int packet_length) {
 /* extract address */
 	packet_addr_l = 0;
 	ExtractBytes(1 * 8, tmp_buf, 5);
-	for (t = 0; t < 5; t++) packet_addr_l |= ((uint64_t)tmp_buf[t]) << (4 - t) * 8;
+	for (t = 0; t < 5; t++)
+		packet_addr_l |= ((uint64_t)tmp_buf[t]) << (4 - t) * 8;
 
 	/* extract pcf */
 	ExtractBytes(6 * 8, tmp_buf, 2);
@@ -312,9 +318,12 @@ bool DecodeNRFPacket(int32_t sample, int srate, int packet_length) {
 	if (packet_crc == calced_crc) {
 		gettimeofday(&tv, NULL);
 		printf("%ld.%06ld ", (long)tv.tv_sec, tv.tv_usec);
-		printf("NRF24 Packet start sample %" PRId32 ", Threshold:%" PRId32 ", Address: 0x%08" PRIX64 " ", sample, g_threshold, packet_addr_l);
-		printf("length:%d, pid:%d, no_ack:%d, CRC:0x%04X data:", packet_length, (pcf & 0b110) >> 1, pcf & 0b1, packet_crc);
-		for (c = 0; c < packet_length; c++) printf("%02X ", packet_data[c]);
+		printf("NRF24 Packet start sample %" PRId32 ", Threshold:%" PRId32
+			",Address: 0x%08" PRIX64 " ", sample, g_threshold, packet_addr_l);
+		printf("length:%d, pid:%d, no_ack:%d, CRC:0x%04X data:", packet_length,
+			(pcf & 0b110) >> 1, pcf & 0b1, packet_crc);
+		for (c = 0; c < packet_length; c++)
+			printf("%02X ", packet_data[c]);
 		printf("\n");
 		return true;
 	} else return false;
@@ -411,9 +420,12 @@ int main (int argc, char**argv) {
 		cursamp  = (int16_t)( fgetc(stdin) | fgetc(stdin) << 8);
 		RB_inc();
 		RB(0) = (int)cursamp;
-		if (--skipSamples < 1) if (DecodePacket(decode_type, ++samples, srate, packet_len)) skipSamples = 20;
+		if (--skipSamples < 1 && DecodePacket(decode_type, ++samples,
+				srate, packet_len))
+			skipSamples = 20;
 	}
 
-	printf("%" PRId32 " samples received in %d seconds \n", samples, (int)(time(NULL) - start_time));
+	printf("%" PRId32 " samples received in %d seconds \n", samples,
+		(int)(time(NULL) - start_time));
 	return 0;
 }
